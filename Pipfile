@@ -1,0 +1,39 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+django = "*"
+djangorestframework = "*"
+drf-nested-routers = "*"
+django-filter = "*"
+djoser = "*"
+djangorestframework-simplejwt = "*"
+pillow = "*"
+redis = "*"
+celery = "*"
+pymysql = "*"
+django-debug-toolbar = "*"
+django-cors-headers = "*"
+django-templated-mail = "*"
+flower = "*"
+model-bakery = "*"
+django-redis = "*"
+whitenoise = "*"
+gunicorn = "*"
+mysqlclient = "*"
+
+[dev-packages]
+pytest = "*"
+pytest-django = "*"
+pytest-watch = "*"
+model-bakery = "*"
+locust = "*"
+django-silk = "*"
+
+[requires]
+python_version = "3.12"
+
+[pipenv]
+allow_prereleases = true
