@@ -1,3 +1,4 @@
+from django.forms import ValidationError
 from django.shortcuts import get_object_or_404
 from django.db.models import Count
 from django_filters.rest_framework import DjangoFilterBackend
@@ -11,12 +12,13 @@ from rest_framework.permissions import IsAuthenticated ,AllowAny, IsAdminUser, D
 from rest_framework.response import Response
 from rest_framework import status
 from .pagination import DefaultPagination
-from .models  import Product, Collection, Review, Cart, Cart_item, Customer, Order, ProductImage, Order_item
+from .models  import Product, Collection, Review, Cart, Cart_item, Customer, Order, ProductImage, Order_item, \
+Favorite
 from .filters import ProductFilter
 from .permissions import IsAdminOrReadOnly, ViewCustomerHistoryPermission
 from .serializers import ProductSerializer, CollectionSerializer, ReviewSerializer, CartSerializer, \
     CartItemSerializer, AddCartItemSerializer, UpdateCartItemSerializer, CustomerSerializer, OrderSerializer, \
-     CreateOrderSerializer, UpdateOrderSerializer, ProductImageSerializer
+     CreateOrderSerializer, UpdateOrderSerializer, ProductImageSerializer, FavoriteSerializer
 
 
 class ProductViewSet(ModelViewSet):
@@ -155,3 +157,35 @@ class ProductImageViewSet(ModelViewSet):
     
     def get_queryset(self):
         return ProductImage.objects.filter(product_id=self.kwargs['product_pk'])
+    
+class FavoriteViewSet(ModelViewSet):
+    serializer_class = FavoriteSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        try:
+            customer = Customer.objects.get(user_id=self.request.user)
+            return Favorite.objects.filter(customer=customer)
+        except Customer.DoesNotExist:
+            return Favorite.objects.none()
+
+    def perform_create(self, serializer):
+        try:
+            customer = Customer.objects.get(user_id=self.request.user)
+            serializer.save(customer=customer)
+        except Customer.DoesNotExist:
+            raise ValidationError ('No customer account')
+
+    @action(detail=False, methods=['POST'])   
+    def toggle(self, request):
+        customer = Customer.objects.get(user_id=self.request.user)
+        product_id = request.data.get('product_id')
+        favorite, created = Favorite.objects.get_or_created (
+            customer=customer,
+            product_id=product_id 
+        )
+        if not created:
+            favorite.delete()
+            return Response('Removed from favorites')
+        return Response('Added to favorites')
+

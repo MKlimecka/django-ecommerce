@@ -120,3 +120,11 @@ class CollectionAdmin(admin.ModelAdmin):
             products_count=Count('products')
         )
     
+
+@admin.register(models.Favorite)
+class FavoriteAdmin(admin.ModelAdmin):
+    list_display = ['customer', 'product']
+    search_fields = ['customer__user__email', 'product__title']
+    list_filter = ['product']
+
+    
