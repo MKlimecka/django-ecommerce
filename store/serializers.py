@@ -2,7 +2,7 @@ from decimal import Decimal
 from django.db import transaction
 from rest_framework import serializers
 from .signals import order_created
-from store.models import Product, Collection, Review, Cart, Cart_item, Customer, Order, Order_item, ProductImage
+from store.models import Product, Collection, Review, Cart, Cart_item, Customer, Order, Order_item, ProductImage, Favorite
 
 
 class CollectionSerializer(serializers.ModelSerializer):
@@ -179,4 +179,11 @@ class CreateOrderSerializer(serializers.Serializer):
 
             return order
 
+
+class FavoriteSerializer(serializers.ModelSerializer):
+    product_title = serializers.CharField(source='product.title', read_only=True)
+
+    class Meta:
+        model = Favorite
+        fields = ['id', 'product', 'product_title']
 
