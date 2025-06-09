@@ -119,7 +119,20 @@ class CollectionAdmin(admin.ModelAdmin):
         return super().get_queryset(request).annotate(
             products_count=Count('products')
         )
-    
+
+
+@admin.register(models.Cart)
+class CartAdmin(admin.ModelAdmin):
+    list_display = ['id', 'user', 'created_at']
+    search_fields = ['customer__user__email', 'user__username']
+    list_filter = ['user', 'created_at']
+
+# @admin.register(models.Cart_item)
+# class Cart_itemAdmin(admin.ModelAdmin):
+#     list_display = ['cart', 'product', 'quantity']
+#     search_fields = ['product__tittle']
+#     list_filter = ['product']
+
 
 @admin.register(models.Favorite)
 class FavoriteAdmin(admin.ModelAdmin):

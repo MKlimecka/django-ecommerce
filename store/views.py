@@ -1,3 +1,5 @@
+from uuid import UUID
+from amqp import NotFound
 from django.forms import ValidationError
 from django.shortcuts import get_object_or_404
 from django.db.models import Count
@@ -8,7 +10,7 @@ from rest_framework.mixins import CreateModelMixin, RetrieveModelMixin, DestroyM
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet, GenericViewSet
-from rest_framework.permissions import IsAuthenticated ,AllowAny, IsAdminUser, DjangoModelPermissions
+from rest_framework.permissions import IsAuthenticated ,AllowAny, IsAdminUser, DjangoModelPermissions, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework import status
 from .pagination import DefaultPagination
@@ -67,10 +69,40 @@ class CartViewSet(CreateModelMixin,
                   RetrieveModelMixin, 
                   DestroyModelMixin, 
                   GenericViewSet):
+    
+    http_method_names =['get', 'post', 'patch', 'delete']
      
-     queryset = Cart.objects.prefetch_related('items__products').all()
+    #  queryset = Cart.objects.prefetch_related('items__products').all()
+    
+    serializer_class = CartSerializer
+    permission_classes = [AllowAny]
+
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_authenticated:
+            return Cart.objects\
+            .filter(user=user)\
+            .prefetch_related('items__product')
+        return Cart.objects.none()
+
      
-     serializer_class = CartSerializer
+    def perform_create(self, serializer):
+        user = None
+        if self.request.user.is_authenticated:
+            serializer.save(user=user)
+        
+    @action(detail=False, methods=['get'], url_path='me', permission_classes=[AllowAny])
+    def get_my_cart(self, request):
+        user = request.user
+        if user.is_authenticated:
+            cart = Cart.objects.filter(user=user).first()
+        else:
+            cart = None
+        if cart:
+            serializer = self.get_serializer(cart)
+            return Response(serializer.data)
+        return Response({'detail': 'Cart not found'}, status=404)
 
 
 class CartItemViewSet(ModelViewSet):
