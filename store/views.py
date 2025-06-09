@@ -216,11 +216,11 @@ class FavoriteViewSet(ModelViewSet):
         except Customer.DoesNotExist:
             raise ValidationError ('No customer account')
 
-    @action(detail=False, methods=['POST'])   
+    @action(detail=False, methods=['POST'], url_path='toggle')   
     def toggle(self, request):
         customer = Customer.objects.get(user_id=self.request.user)
-        product_id = request.data.get('product_id')
-        favorite, created = Favorite.objects.get_or_created (
+        product_id = request.data.get('product')
+        favorite, created = Favorite.objects.get_or_create(
             customer=customer,
             product_id=product_id 
         )
@@ -228,4 +228,13 @@ class FavoriteViewSet(ModelViewSet):
             favorite.delete()
             return Response('Removed from favorites')
         return Response('Added to favorites')
+    
+    @action(detail=False, methods=['get'], url_path='me', permission_classes=[IsAuthenticated])
+    def get_my_favorites(self, request):
+        customer = get_object_or_404(Customer, user=request.user)
+        favorites = Favorite.objects.filter(customer=customer).select_related('product')
+        products = [f.product for f in favorites]
+        serializer = ProductSerializer(products, many=True)
+        return Response(serializer.data)
+
 
