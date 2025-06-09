@@ -116,11 +116,19 @@ class CartItemViewSet(ModelViewSet):
         return CartItemSerializer
     
     def get_serializer_context(self):
-        return {'cart_id': self.kwargs['cart_pk']}
+        try:
+            cart = Cart.objects.get(user=self.request.user)
+        except Cart.DoesNotExist:
+            raise NotFound('Cart not found.')
+        return {'cart_id': str(cart.id)}
 
     def get_queryset(self):
+        try:
+            cart = Cart.objects.get(user=self.request.user)
+        except Cart.DoesNotExist:
+            raise NotFound('No cart found for this user')
         return Cart_item.objects\
-            .filter(cart_id=self.kwargs['cart_pk'])\
+            .filter(cart=cart)\
             .select_related('product')
 
 
