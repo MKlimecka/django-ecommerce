@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.contrib.auth import get_user_model
 from django.conf import settings
 from django.db import models
 from django.core.validators import MinValueValidator
@@ -116,6 +117,7 @@ class Address(models.Model):
 class Cart(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid4)
     created_at = models.DateTimeField(auto_now_add=True)
+    user = models.ForeignKey(get_user_model(), on_delete=models.CASCADE, related_name='carts', null=True, blank=True)
 
 
 class Cart_item(models.Model):
