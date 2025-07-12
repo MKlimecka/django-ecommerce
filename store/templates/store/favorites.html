@@ -1,0 +1,76 @@
+{% extends "store/base.html" %}
+{% block title %}Favorites{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <h2 class="mb-4 text-center">❤️ Your Favorites</h2>
+  <div id="favorites-container" class="row g-4"></div>
+  <div id="favorites-message" class="text-center mt-4 text-muted"></div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener("DOMContentLoaded", async () => {
+  const jwt = localStorage.getItem("access");
+  const container = document.getElementById("favorites-container");
+  const message = document.getElementById("favorites-message");
+
+  const res = await fetch("/store/favorites/me/", {
+    headers: { "Authorization": `JWT ${jwt}` }
+  });
+
+  if (!res.ok) {
+    message.textContent = "Failed to load favorites.";
+    return;
+  }
+
+  const favorites = await res.json();
+
+  if (favorites.length === 0) {
+    message.textContent = "You have no favorite products.";
+    return;
+  }
+
+  favorites.forEach(product => {
+    const card = document.createElement("div");
+    card.className = "col-md-4";
+    card.innerHTML = `
+      <div class="card h-100 shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title">${product.title}</h5>
+          <p class="card-text">${product.description || "No description"}</p>
+          <p class="card-text fw-bold">${product.unit_price} $</p>
+          <button class="btn btn-sm btn-outline-danger" onclick="removeFavorite(${product.id}, this)">Remove</button>
+        </div>
+      </div>
+    `;
+    container.appendChild(card);
+  });
+});
+
+async function removeFavorite(productId, btn) {
+  const jwt = localStorage.getItem("access");
+
+  const res = await fetch("/store/favorites/toggle/", {
+    method: "POST",
+    headers: {
+      "Authorization": `JWT ${jwt}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ product: productId })
+  });
+
+  if (res.ok) {
+    const data = await res.json();
+    console.log("response data:", data)
+    if (typeof data === "string" && data.toLowerCase().includes("removed")) {
+      location.reload();
+    } 
+    else {
+      alert(`Favorites update:", ${data}`);
+    }
+  } 
+}
+</script>
+{% endblock %}

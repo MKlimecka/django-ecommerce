@@ -1,7 +1,7 @@
 from uuid import UUID
 from amqp import NotFound
 from django.forms import ValidationError
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, render
 from django.db.models import Count
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.decorators import action
@@ -40,7 +40,7 @@ class ProductViewSet(ModelViewSet):
          if Order_item.objects.filter(product_id=kwargs['pk']).count() > 0 :
             return Response({'error': 'Product cannot be deleted.'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
          return super().destroy(request, *args, **kwargs)
-    
+
 
 class CollectionViewSet(ModelViewSet):
 
@@ -144,6 +144,7 @@ class CustomerViewSet(ModelViewSet):
 
     @action(detail=False, methods=['GET','PUT'], permission_classes=[IsAuthenticated])
     def me(self, request):
+
         customer = Customer.objects.get(user_id=request.user.id)
         if request.method == 'GET':
             customer = Customer.objects.get(user_id=request.user.id)
@@ -236,5 +237,42 @@ class FavoriteViewSet(ModelViewSet):
         products = [f.product for f in favorites]
         serializer = ProductSerializer(products, many=True)
         return Response(serializer.data)
+    
+def product_list_view(request):
+        products = Product.objects.all()
+        return render(request, 'store/product_list.html', {'products':products})
+
+def api_list_view(request):
+    endpoints = [
+        {'name': 'Products', 'url': '/store/products/', 'description': 'Returns a list od avaliable products'},
+        {'name': 'Collections', 'url': '/store/collections/', 'description': 'Returns product collections'},
+        {'name': 'Customer', 'url': '/store/auth/users/me/', 'description': "Returns the current customer", 'auth': True},
+        {'name': 'Cart', 'url': '/store/carts/me/', 'description': "Returns the current customer's cart", 'auth': True},
+        {'name': 'Cart/items', 'url': '/store/cart/items/', 'description': 'Allows adding to cart', 'auth': True},
+        {'name': 'Orders', 'url': '/store/orders/', 'description': "Returns the current customer's order history", 'auth': True},
+        {'name': 'Favorites', 'url': '/store/favorites/me/', 'description': "Returns the current customer's favorite items", 'auth': True},
+    ]
+    return render(request, 'store/api_list.html', {'endpoints':endpoints})
+
+def login_view(request):
+    return render(request, 'store/login.html')
+
+def favorites_view(request):
+    return render(request, 'store/favorites.html')
+
+def account_view(request):
+    return render(request, 'store/account.html')
+
+def register_view(request):
+    return render(request, 'store/register.html')
+
+def cart_view(request):
+    return render(request, 'store/cart.html')
+
+
+
+
+
+
 
 

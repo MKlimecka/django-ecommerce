@@ -1,0 +1,28 @@
+{% extends "store/base.html" %}
+{% block title %}API list{% endblock %}
+{% block content %}
+
+<h1 class="mb-4 text-center">API Endpoint Reference</h1>
+<div class="row row-cols-1 row-cols-md-2 g-4">
+    {% for ep in endpoints %}
+    <div class="col">
+        <div class="card h-100 border-primary">
+            <div class="card-body">
+                <h5 class="card-title">{{ep.name}}</h5>
+                <p class="card-text">
+                    {{ ep.description }}
+                    <a href="{{ ep.url }}" target="_blank">
+                    <code class="d-block bg-light border p-2 rounded mb-2">{{ ep.url }}</code>
+                    
+                </a>
+                </p>   
+                {% if ep.auth %}
+                <span class="badge bg-warning text-dark">Auth required</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{% endblock %}
