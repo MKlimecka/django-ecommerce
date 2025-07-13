@@ -1,4 +1,4 @@
-settings.dev.py
+storefront/settings/dev.py
 *.pyc
 /media/
 /static/
