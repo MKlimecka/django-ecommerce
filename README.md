@@ -61,9 +61,9 @@ Introduction to data modeling in e-commerce systems.
 - `favorites/` – All favorited products
 - `favorites/me/` – Favorites of logged-in user
 - `favorites/toggle/` – Add/remove favorite
-- `cards/me/` – Cart of logged-in user
-- `cards/items/` – Add to cart
-- `cards/items/<id>/` – Edit/delete cart item
+- `carts/me/` – Cart of logged-in user
+- `carts/items/` – Add to cart
+- `carts/items/<id>/` – Edit/delete cart item
 
 ### Frontend
 - Built with HTML, Bootstrap, and  JavaScript
@@ -89,10 +89,7 @@ Introduction to data modeling in e-commerce systems.
 ## Getting Started
 
 ```bash
-git clone https://github.com/your-username/your-repo.git
-
-https://github.com/MKlimecka/django-ecommerce
-cd your-repo
+git clone https://github.com/MKlimecka/django-ecommerce
 
 pip install pipenv
 pipenv shell
