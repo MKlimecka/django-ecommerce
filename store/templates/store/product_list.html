@@ -1,0 +1,117 @@
+{% extends "core/base.html" %} {% load static %} {% block title %}Products{% endblock %}
+
+{% block content %}
+
+<h1 class="mb-4 text-center">Product List</h1>
+<form method="get" class="row mb-4">
+    <div class="col-md-4">
+        <input type="text" name="search" value="{{ request.GET.search }}" class="form-control"
+            placeholder="Search products...">
+    </div>
+    <div class="col-md-4">
+        <select name="sort" class="form-select">
+            <option value="" disabled selected>Sort by</option>
+            <option value="price">Price (low to high)</option>
+            <option value="-price">Price (high to low)</option>
+            <option value="title">Title A-Z</option>
+            <option value="-title">Title Z-A</option>
+        </select>
+
+    </div>
+    <div class="col-md-2">
+        <button type="submit" class="btn btn-primary w-100">Apply</button>
+    </div>
+</form>
+<div class="row row-cols-1 row-cols-md-3 g-4">
+    {% for product in products %}
+    <div class="col">
+        <div class="card h-100 border-secondary">
+            <div class="card-body d-flex flex-column">
+                <h5 class="card-title">
+                    <a href="/store/products/{{ product.id }}/" target="_blank" class="text-decoration-none">
+                        {{ product.title }}
+                    </a>
+                </h5>
+                <p class="card-text">{{ product.description|truncatewords:20 }}</p>
+                <p class="fw-bold">$ {{ product.unit_price }}</p>
+                <button onclick="addToCart('{{ product.id }}')" class="btn btn-outline-warning text-dark">🛒 Add to cart</button>
+                <button onclick="toggleFavorite('{{ product.id }}')" class="btn btn-outline-warning text-dark">❤️ Add to favorites</button>
+                
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<script>
+async function toggleFavorite(productId) {
+  const jwt = localStorage.getItem("access");
+
+  if (!jwt) {
+    alert("You must be logged in to favorite products.");
+    return;
+  }
+
+  try {
+    const res = await fetch("/store/favorites/toggle/", {
+      method: "POST",
+      headers: {
+        "Authorization": `JWT ${jwt}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ product: productId })
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      if (data.status === "added") {
+        alert("Added to favorites!");
+      } else if (data.status === "removed") {
+        alert("Removed from favorites.");
+      } else {
+        alert("Favorites updated.");
+      }
+    } else {
+      alert("Failed to update favorites.");
+    }
+  } catch (err) {
+    console.error("Toggle favorite error:", err);
+    alert("An error occurred.");
+  }
+}
+
+async function addToCart(productId) {
+  const jwt = localStorage.getItem("access");
+
+  if (!jwt) {
+    alert("You must be logged in to add to cart.");
+    return;
+  }
+
+  try {
+    const res = await fetch("/store/cart/items/", {
+      method: "POST",
+      headers: {
+        "Authorization": `JWT ${jwt}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        product_id: productId,
+        quantity: 1
+      })
+    });
+
+    if (res.ok) {
+      alert("Product added to cart!");
+    } else {
+      alert("Failed to add to cart.");
+    }
+  } catch (err) {
+    console.error("Add to cart error:", err);
+    alert("An error occurred.");
+  }
+}
+</script>
+
+{% endblock %}

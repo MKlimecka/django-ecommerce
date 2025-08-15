@@ -1,0 +1,48 @@
+{% extends "store/base.html" %}
+{% block title %}My Account{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <h2 class="mb-4 text-center">My Account</h2>
+    <div id="user-info" class="text-center text-muted"></div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let jwt = null
+    document.addEventListener("DOMContentLoaded", async () => {
+        const jwt = localStorage.getItem("access");
+        const info = document.getElementById("account-info");
+
+        if (!jwt) {
+            info.textContent = "You must be logged in.";
+            return;
+        }
+
+        const res = await fetch("/auth/users/me/", {
+            headers: {
+                "Authorization": `JWT ${jwt}`,
+                "Content-Type": "application/json",
+                "Accept": "application/json",
+            }
+        });
+
+        if (!res.ok) {
+            info.textContent = "Failed to load user.";
+            return;
+        }
+
+
+        const user = await res.json();
+        console.log(user);
+        document.getElementById("user-info").innerHTML=`
+        <p>Username: ${user.username}</p>
+        <p>Email: ${user.email}</p>
+        <p>Name: ${user.first_name} ${user.last_name}</p>
+        `;
+
+    });
+
+    </script>
+    {% endblock %}

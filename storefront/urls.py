@@ -18,6 +18,8 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path, include
+from django.views.generic import TemplateView
+from store import views as store_views
 # from debug_toolbar.toolbar import debug_toolbar_urls
 
 admin.site.site_header = 'Storefront Admin'
@@ -32,6 +34,14 @@ urlpatterns = [
     path('store/', include('store.urls')),
     path('auth/', include('djoser.urls')),
     path('auth/', include('djoser.urls.jwt')),
+    path('api_list/', store_views.api_list_view, name='api_list'),
+    path('product_list/', store_views.product_list_view, name='product_list'),
+    path('login/', store_views.login_view, name='login'),
+    path('register/', store_views.register_view, name='register'),
+    path('account/', store_views.account_view, name='account'),
+    path('favorites/', store_views.favorites_view, name='favorites'),
+    path('cart/', store_views.cart_view, name='cart'),
+    path('', TemplateView.as_view(template_name='store/index.html'))
 
 ]
 if settings.DEBUG:
@@ -41,5 +51,5 @@ if settings.DEBUG:
     ]
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
-    urlpatterns += [path('silk/', include('silk.urls', namespace='silk'))]
+    # urlpatterns += [path('silk/', include('silk.urls', namespace='silk'))]
 

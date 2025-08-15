@@ -1,0 +1,113 @@
+{% extends "core/base.html" %}
+{% block title %}Cart{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <h2 class="mb-4 text-center">Your Cart</h2>
+  <div id="cart-container" class="row g-4"></div>
+  <div id="cart-message" class="text-center mt-4 text-muted"></div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener("DOMContentLoaded", async () => {
+  const jwt = localStorage.getItem("access");
+  const container = document.getElementById("cart-container");
+  const message = document.getElementById("cart-message");
+
+  if (!jwt) {
+    message.textContent = "You must be logged in to view your cart.";
+    return;
+  }
+
+  const res = await fetch("/store/carts/me/", {
+    headers: {
+      "Authorization": `JWT ${jwt}`
+    }
+  });
+
+  if (!res.ok) {
+    message.textContent = "Failed to load cart.";
+    return;
+  }
+
+  const cartData = await res.json();
+
+  console.log("cart data:", cartData)
+
+  if (cartData.length === 0) {
+    message.textContent = "Your cart is empty.";
+    return;
+  }
+
+  cartData.items.forEach(item => {
+    const card = document.createElement("div");
+    card.className = "col-md-4";
+    card.innerHTML = `
+      <div class="card h-100 shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title">${item.product.title}</h5>
+          <p class="card-text fw-bold">Price per unit: $${item.product.unit_price}</p>
+          <p class="card-text "> Quantity: ${item.quantity}</p>
+          <p class="card-text text-success">Total: $${item.total_price.toFixed(2)}</p>
+          <input type="number" id="qty-${item.id}" value="${item.quantity}"><button onclick="updateQuantity(${item.id})">Update</button>
+          <button class="btn btn-sm btn-outline-danger" onclick="removeFromCart(${item.id})">Remove</button>
+        </div>
+      </div>
+    `;
+    container.appendChild(card);
+  });
+  message.innerHTML = `<h4 class="mt-5 fw-bold">Total cart price: $${cartData.total_price.toFixed(2)}<h4>`;
+});
+
+
+async function removeFromCart(itemId) {
+  const jwt = localStorage.getItem("access");
+  const res = await fetch(`/store/cart/items/${itemId}/`, {
+    method: "DELETE",
+    headers: {
+      "Authorization": `JWT ${jwt}`,
+      "Content-Type": "application/json"
+    }
+  });
+
+  if (res.ok) {
+    alert("Removed from cart.");
+    window.location.reload();
+  } else {
+    alert("Failed to remove item.");
+  }
+}
+
+async function updateQuantity(itemId) {
+  const jwt = localStorage.getItem("access");
+  const input = document.getElementById(`qty-${itemId}`);
+  const quantity = parseInt(input.value);
+
+  if (quantity < 1) {
+    alert("Quantity must be at least 1.");
+    return;
+  }
+
+  const res = await fetch(`/store/cart/items/${itemId}/`, {
+    method: "PATCH",
+    headers: {
+      "Authorization": `JWT ${jwt}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ quantity })
+  });
+
+  if (res.ok) {
+    alert("Quantity updated.");
+    window.location.reload();
+  } else {
+    const errorText = await res.text();
+    console.error("Update failed:", res.status, errorText);
+    alert("Failed to update quantity.");
+  }
+}
+</script>
+{% endblock %}
+
